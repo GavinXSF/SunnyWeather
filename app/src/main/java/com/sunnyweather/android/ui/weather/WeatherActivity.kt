@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.lifecycle.ViewModelProvider
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.sunnyweather.android.R
 import com.sunnyweather.android.logic.model.Weather
 import com.sunnyweather.android.logic.model.getSky
@@ -25,6 +26,8 @@ class WeatherActivity : AppCompatActivity() {
 //                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
 //        window.statusBarColor = Color.TRANSPARENT
         setContentView(R.layout.activity_weather)
+
+        val swipeRefresh: SwipeRefreshLayout = findViewById(R.id.swipeRefresh)
 
         viewModel.let {
             if (it.locationLat.isEmpty()) {
@@ -45,10 +48,23 @@ class WeatherActivity : AppCompatActivity() {
                     Toast.makeText(this, "无法成功获取天气信息", Toast.LENGTH_SHORT).show()
                     result.exceptionOrNull()?.printStackTrace()
                 }
+                swipeRefresh.isRefreshing = false
             }
-
-            it.refreshWeather(it.locationLng, it.locationLat)
         }
+        swipeRefresh.setColorSchemeResources(R.color.primaryColor)
+        refreshWeather()
+        swipeRefresh.setOnRefreshListener {
+            refreshWeather()
+        }
+
+    }
+
+    private fun refreshWeather() {
+        viewModel.run {
+            refreshWeather(locationLng, locationLat)
+        }
+        val swipeRefresh: SwipeRefreshLayout = findViewById(R.id.swipeRefresh)
+        swipeRefresh.isRefreshing = true
     }
 
     private fun showWeatherInfo(weather: Weather) {
